@@ -10,6 +10,7 @@ level_load:
         PLB
         SEP #$20
         
+        STZ $18C5
         JSR check_lagless
         JSR check_pal
         JSR check_midway_entrance
