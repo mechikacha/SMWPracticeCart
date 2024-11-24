@@ -11,6 +11,7 @@ level_load:
         SEP #$20
         
         STZ $18C5
+        JSR savestate_slot_reset
         JSR check_lagless
         JSR check_pal
         JSR check_midway_entrance
@@ -44,6 +45,13 @@ level_load:
         
         RTL
         
+
+savestate_slot_reset:
+        lda #$00
+        sta $700340
+        sta $700341
+        rts
+
 l_r_functions:
         dw setup_room_reset
         dw setup_level_reset

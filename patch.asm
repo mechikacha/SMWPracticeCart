@@ -16,7 +16,7 @@ ORG !_F+$00FFC0
         db "SMW PRACTICE CART    "
 ; give the cartridge more SRAM
 ORG !_F+$00FFD8
-        db $05
+        db $07
 
 ; nintendo presents sound
 ORG !_F+$0093C1

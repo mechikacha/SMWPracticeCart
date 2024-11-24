@@ -52,6 +52,7 @@ level_tick:
         JSR test_translevel_0_failsafe
         JSR wait_slowdown
         JSR sixteen_calculation
+        JSR savestate_slot
         
     .done:
         PLB
@@ -1106,6 +1107,8 @@ wait_slowdown:
         RTS
 
 incsrc "plugins/capefloattimer.asm"
+
+incsrc "plugins/savestate_slot.asm"
 
 ; draw the current dymeter to where it belongs on the screen
 display_dynmeter:

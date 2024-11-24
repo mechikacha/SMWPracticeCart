@@ -264,9 +264,19 @@ activate_save_state:
         RTL
 
 go_save_state:
+        lda !slot_to_save
+        asl
+        tax
+        jmp (.slot_pointer, x)
+
+    .slot_pointer:
+        dw .slot_0
+        dw .slot_1
+        dw .slot_2
+
+    .slot_0:
         PHP
         REP #$10
-        
         ; save wram $0000-$1FFF to wram $705000-$706FFF
         ; mirrored wram
         LDX #$1FFF
@@ -386,6 +396,250 @@ go_save_state:
         PLP
         RTS
 
+    .slot_1:
+        PHP
+        REP #$10
+        ; save wram $0000-$1FFF to wram $705000-$706FFF
+        ; mirrored wram
+        LDX #$1FFF
+      - LDA $7E0000,X
+        STA $715000,X
+        DEX
+        BPL -
+        
+        ; save wram $C680-$C6DF to $704CE0-$704D3F
+        ; mode 7 boss tilemap
+        LDX #$005F
+      - LDA $7EC680,X
+        STA $714CE0,X
+        DEX
+        BPL -
+        
+        ; save wram $7F9A7B-$7F9C7A to $704AE0-$704CDF
+        ; wiggler segments
+        LDX #$01FF
+      - LDA $7F9A7B,X
+        STA $714AE0,X
+        DEX
+        BPL -
+        
+;        ; save wram $B900-$C0FF to $704C40-$70543F
+;        ; background tilemap
+;        LDX #$07FF
+;      - LDA $7EB900,X
+;        STA $714C40,X
+;        DEX
+;        BPL -
+        
+        ; save wram $C800-$FFFF to $700BA0-$70439F
+        ; level tilemap low byte
+        LDX #$37FF
+      - LDA $7EC800,X
+        STA $710BA0,X
+        DEX
+        BPL -
+        
+        ; save wram $7FC800-$7FFFFF to $7043A0-$704A9F
+        ; level tilemap high bit
+        ; since only bit 0 is used for this data, crunch it into a 1:8 ratio
+        ; unrolled inner loop is used for the speed increase
+        PHB
+        LDA #$71
+        PHA
+        PLB
+        
+        LDX #$37F8
+        LDY #$06FF
+      - LDA $7FC800,X
+        STA $00
+        LDA $7FC801,X
+        STA $01
+        LDA $7FC802,X
+        STA $02
+        LDA $7FC803,X
+        STA $03
+        LDA $7FC804,X
+        STA $04
+        LDA $7FC805,X
+        STA $05
+        LDA $7FC806,X
+        STA $06
+        LDA $7FC807,X
+        STA $07
+        LDA #$00
+        LSR $00
+        ROL A
+        LSR $01
+        ROL A
+        LSR $02
+        ROL A
+        LSR $03
+        ROL A
+        LSR $04
+        ROL A
+        LSR $05
+        ROL A
+        LSR $06
+        ROL A
+        LSR $07
+        ROL A
+        STA $43A0,Y ; $7043A0,Y
+        DEX #8
+        DEY
+        BPL -
+        
+        ; do these separately because they actually use the upper 7 bits
+        ; mode 7 level tilemaps
+        LDX #$001F
+      - LDA $7FC8B0,X
+        STA $714AA0,X
+        DEX
+        BPL -
+        
+        LDX #$001F
+      - LDA $7FCA60,X
+        STA $714AC0,X
+        DEX
+        BPL -
+        
+        PLB
+        
+        ; save the stack pointer to $704D48 - $704D49
+        REP #$30
+        TSX
+        TXA
+        STA $714D48
+        
+        ; save the currently used music to $704D4A
+        SEP #$20
+        LDA $2142
+        STA $714D4A
+        
+        PLP
+        RTS
+
+    .slot_2:
+        PHP
+        REP #$10
+        ; save wram $0000-$1FFF to wram $705000-$706FFF
+        ; mirrored wram
+        LDX #$1FFF
+      - LDA $7E0000,X
+        STA $725000,X
+        DEX
+        BPL -
+        
+        ; save wram $C680-$C6DF to $704CE0-$704D3F
+        ; mode 7 boss tilemap
+        LDX #$005F
+      - LDA $7EC680,X
+        STA $724CE0,X
+        DEX
+        BPL -
+        
+        ; save wram $7F9A7B-$7F9C7A to $704AE0-$704CDF
+        ; wiggler segments
+        LDX #$01FF
+      - LDA $7F9A7B,X
+        STA $724AE0,X
+        DEX
+        BPL -
+        
+;        ; save wram $B900-$C0FF to $704C40-$70543F
+;        ; background tilemap
+;        LDX #$07FF
+;      - LDA $7EB900,X
+;        STA $724C40,X
+;        DEX
+;        BPL -
+        
+        ; save wram $C800-$FFFF to $700BA0-$70439F
+        ; level tilemap low byte
+        LDX #$37FF
+      - LDA $7EC800,X
+        STA $720BA0,X
+        DEX
+        BPL -
+        
+        ; save wram $7FC800-$7FFFFF to $7043A0-$704A9F
+        ; level tilemap high bit
+        ; since only bit 0 is used for this data, crunch it into a 1:8 ratio
+        ; unrolled inner loop is used for the speed increase
+        PHB
+        LDA #$72
+        PHA
+        PLB
+        
+        LDX #$37F8
+        LDY #$06FF
+      - LDA $7FC800,X
+        STA $00
+        LDA $7FC801,X
+        STA $01
+        LDA $7FC802,X
+        STA $02
+        LDA $7FC803,X
+        STA $03
+        LDA $7FC804,X
+        STA $04
+        LDA $7FC805,X
+        STA $05
+        LDA $7FC806,X
+        STA $06
+        LDA $7FC807,X
+        STA $07
+        LDA #$00
+        LSR $00
+        ROL A
+        LSR $01
+        ROL A
+        LSR $02
+        ROL A
+        LSR $03
+        ROL A
+        LSR $04
+        ROL A
+        LSR $05
+        ROL A
+        LSR $06
+        ROL A
+        LSR $07
+        ROL A
+        STA $43A0,Y ; $7043A0,Y
+        DEX #8
+        DEY
+        BPL -
+        
+        ; do these separately because they actually use the upper 7 bits
+        ; mode 7 level tilemaps
+        LDX #$001F
+      - LDA $7FC8B0,X
+        STA $724AA0,X
+        DEX
+        BPL -
+        
+        LDX #$001F
+      - LDA $7FCA60,X
+        STA $724AC0,X
+        DEX
+        BPL -
+        
+        PLB
+        
+        ; save the stack pointer to $704D48 - $704D49
+        REP #$30
+        TSX
+        TXA
+        STA $724D48
+        
+        ; save the currently used music to $704D4A
+        SEP #$20
+        LDA $2142
+        STA $724D4A
+        
+        PLP
+        RTS
+
 ; this code is run when the player presses L + select to load a save state
 activate_load_state:
         STZ $4200 ; nmi disable
@@ -452,9 +706,19 @@ activate_load_state:
       + RTL
         
 go_load_state:
+        lda !slot_to_load
+        asl
+        tax
+        jmp (.slot_pointer_load, x)
+
+    .slot_pointer_load:
+        dw .slot_0
+        dw .slot_1
+        dw .slot_2
+
+    .slot_0:
         PHP        
-        REP #$10
-        
+        REP #$10        
         ; load wram $705000-$706FFF to wram $0000-$1FFF
         ; mirror wram
         ; copy old graphics files into state
@@ -585,6 +849,303 @@ go_load_state:
         ; load the currently used music from $704D4A
         SEP #$20
         LDA $704D4A
+        CMP $2142
+        BEQ +
+        STA $2142
+      + REP #$20
+        
+        ; since we restored the stack, we need to update the return
+        ; address of this routine to what we want it to be. otherwise,
+        ; it would return to the save state routine.
+        LDX #activate_load_state_done-1
+        TXA
+        STA $02,S
+        
+        PLP
+        RTS
+
+    .slot_1:
+        PHP        
+        REP #$10        
+        ; load wram $705000-$706FFF to wram $0000-$1FFF
+        ; mirror wram
+        ; copy old graphics files into state
+        LDX #$0007
+      - LDA $7E0101,X
+        STA $714D40,X
+        DEX
+        BPL -
+        
+        LDX #$1FFF
+      - LDA $715000,X
+        STA $7E0000,X
+        DEX
+        BPL -
+        
+        ; load $704CE0-$704D3F to wram $C680-$C6DF
+        ; mode 7 boss tilemap
+        LDX #$005F
+      - LDA $714CE0,X
+        STA $7EC680,X
+        DEX
+        BPL -
+        
+        ; load $704AE0-$704BDF to wram $7F9A7B-$7F9C7A
+        ; wiggler segments
+        LDX #$01FF
+      - LDA $714AE0,X
+        STA $7F9A7B,X
+        DEX
+        BPL -
+        
+;        ; load $704C40-$70543F to wram $B900-$C0FF
+;        ; background tilemap
+;        LDX #$07FF
+;      - LDA $714C40,X
+;        STA $7EB900,X
+;        DEX
+;        BPL -
+        
+        ; load $700BA0-$70439F to wram $C800-$FFFF
+        LDX #$37FF
+      - LDA $710BA0,X
+        STA $7EC800,X
+        DEX
+        BPL -
+        
+        ; load $7043A0-$704A9F to wram $7FC800-$7FFFFF
+        ; since only bit 0 is used for this data, expand it into a 8:1 ratio
+        ; unrolled inner loop is used for the speed increase
+        LDX #$0007
+      - STZ $00,X
+        DEX
+        BPL -
+        
+        PHB
+        LDA #$71
+        PHA
+        PLB
+        
+        LDX #$37F8
+        LDY #$06FF
+      - LDA $43A0,Y ; $7043A0,Y
+        LSR $07
+        ROR A
+        ROL $07
+        LSR $06
+        ROR A
+        ROL $06
+        LSR $05
+        ROR A
+        ROL $05
+        LSR $04
+        ROR A
+        ROL $04
+        LSR $03
+        ROR A
+        ROL $03
+        LSR $02
+        ROR A
+        ROL $02
+        LSR $01
+        ROR A
+        ROL $01
+        LSR $00
+        ROR A
+        ROL $00
+        LDA $00
+        STA $7FC800,X
+        LDA $01
+        STA $7FC801,X
+        LDA $02
+        STA $7FC802,X
+        LDA $03
+        STA $7FC803,X
+        LDA $04
+        STA $7FC804,X
+        LDA $05
+        STA $7FC805,X
+        LDA $06
+        STA $7FC806,X
+        LDA $07
+        STA $7FC807,X
+        DEX #8
+        DEY
+        BPL -
+        
+        ; do these separately because they actually use the upper 7 bits
+        LDX #$001F
+      - LDA $714AA0,X
+        STA $7FC8B0,X
+        DEX
+        BPL -
+        
+        LDX #$001F
+      - LDA $714AC0,X
+        STA $7FCA60,X
+        DEX
+        BPL -
+        
+        PLB
+        
+        ; load the stack pointer from $704D48 - $704D49
+        REP #$30
+        LDA $714D48
+        TAX
+        TXS
+        
+        ; load the currently used music from $704D4A
+        SEP #$20
+        LDA $714D4A
+        CMP $2142
+        BEQ +
+        STA $2142
+      + REP #$20
+        
+        ; since we restored the stack, we need to update the return
+        ; address of this routine to what we want it to be. otherwise,
+        ; it would return to the save state routine.
+        LDX #activate_load_state_done-1
+        TXA
+        STA $02,S
+        
+        PLP
+        RTS
+
+    .slot_2:
+        print pc
+        PHP   
+        REP #$10
+        ; load wram $705000-$706FFF to wram $0000-$1FFF
+        ; mirror wram
+        ; copy old graphics files into state
+        LDX #$0007
+      - LDA $7E0101,X
+        STA $724D40,X
+        DEX
+        BPL -
+        
+        LDX #$1FFF
+      - LDA $725000,X
+        STA $7E0000,X
+        DEX
+        BPL -
+        
+        ; load $704CE0-$704D3F to wram $C680-$C6DF
+        ; mode 7 boss tilemap
+        LDX #$005F
+      - LDA $724CE0,X
+        STA $7EC680,X
+        DEX
+        BPL -
+        
+        ; load $704AE0-$704BDF to wram $7F9A7B-$7F9C7A
+        ; wiggler segments
+        LDX #$01FF
+      - LDA $724AE0,X
+        STA $7F9A7B,X
+        DEX
+        BPL -
+        
+;        ; load $704C40-$70543F to wram $B900-$C0FF
+;        ; background tilemap
+;        LDX #$07FF
+;      - LDA $7224C40,X
+;        STA $7EB900,X
+;        DEX
+;        BPL -
+        
+        ; load $700BA0-$70439F to wram $C800-$FFFF
+        LDX #$37FF
+      - LDA $720BA0,X
+        STA $7EC800,X
+        DEX
+        BPL -
+        
+        ; load $7043A0-$704A9F to wram $7FC800-$7FFFFF
+        ; since only bit 0 is used for this data, expand it into a 8:1 ratio
+        ; unrolled inner loop is used for the speed increase
+        LDX #$0007
+      - STZ $00,X
+        DEX
+        BPL -
+        
+        PHB
+        LDA #$72
+        PHA
+        PLB
+        
+        LDX #$37F8
+        LDY #$06FF
+      - LDA $43A0,Y ; $7043A0,Y
+        LSR $07
+        ROR A
+        ROL $07
+        LSR $06
+        ROR A
+        ROL $06
+        LSR $05
+        ROR A
+        ROL $05
+        LSR $04
+        ROR A
+        ROL $04
+        LSR $03
+        ROR A
+        ROL $03
+        LSR $02
+        ROR A
+        ROL $02
+        LSR $01
+        ROR A
+        ROL $01
+        LSR $00
+        ROR A
+        ROL $00
+        LDA $00
+        STA $7FC800,X
+        LDA $01
+        STA $7FC801,X
+        LDA $02
+        STA $7FC802,X
+        LDA $03
+        STA $7FC803,X
+        LDA $04
+        STA $7FC804,X
+        LDA $05
+        STA $7FC805,X
+        LDA $06
+        STA $7FC806,X
+        LDA $07
+        STA $7FC807,X
+        DEX #8
+        DEY
+        BPL -
+        
+        ; do these separately because they actually use the upper 7 bits
+        LDX #$001F
+      - LDA $724AA0,X
+        STA $7FC8B0,X
+        DEX
+        BPL -
+        
+        LDX #$001F
+      - LDA $724AC0,X
+        STA $7FCA60,X
+        DEX
+        BPL -
+        
+        PLB
+        
+        ; load the stack pointer from $704D48 - $704D49
+        REP #$30
+        LDA $724D48
+        TAX
+        TXS
+        
+        ; load the currently used music from $704D4A
+        SEP #$20
+        LDA $724D4A
         CMP $2142
         BEQ +
         STA $2142
